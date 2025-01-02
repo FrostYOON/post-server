@@ -1,0 +1,21 @@
+extends layout
+
+block content
+  .container
+    link(rel="stylesheet", href="/style.css")
+    h1 글쓰기
+    form(action="/api/v1/posts" method="post")
+      div.form-group
+        label(for="title") 제목
+        input(type="text" id="title" name="title" required)
+      div.form-group
+        label(for="content") 내용
+        textarea(id="content" name="content" rows="10" required)
+      div.form-group
+        label(for="userId") 작성자
+        input(type="text" id="userId" name="userId" value=user._id disabled)
+      div.button-group
+        button(type="submit") 등록
+        a(href="/posts")
+          button(type="button") 취소
+

@@ -1,0 +1,33 @@
+extends layout
+
+block content
+  .container
+    link(rel="stylesheet", href="/style.css")
+    h1 게시판
+    .button-group
+      a(href="/posts/create")
+        button 글쓰기
+      a(href="/users/signup")
+        button 회원가입
+      if user
+        a(href="/users/logout")
+          button 로그아웃
+      else
+        a(href="/users/login")
+          button 로그인
+    ul.post-list
+      each post in posts
+        li
+          a(href=`/posts/${post._id}`) #{post.title}
+          p.content 내용: #{post.content}
+          p.author 작성자: #{post.author.username}
+          p.date 작성일: #{post.createdAt}
+          p.date 수정일: #{post.updatedAt}
+
+  div#pagination
+    if page > 1
+      a(href=`/posts?page=${page - 1}&size=${size}`)
+        button 이전
+    div#page-number #{page}
+    a(href=`/posts?page=${parseInt(page) + 1}&size=${size}`)
+      button 다음

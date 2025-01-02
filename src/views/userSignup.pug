@@ -1,0 +1,24 @@
+extends layout
+
+block content
+  .container
+    link(rel="stylesheet", href="/style.css")
+    h1 회원가입
+    form(action="/api/v1/users/signup" method="post")
+      div.form-group
+        label(for="username") 이름
+        input(type="text" id="username" name="username" required)
+      div.form-group
+        label(for="email") 이메일
+        input(type="email" id="email" name="email" required)
+      div.form-group
+        label(for="password") 비밀번호
+        input(type="password" id="password" name="password" required)
+      div.form-group
+        label(for="confirmPassword") 비밀번호 확인
+        input(type="password" id="confirmPassword" name="confirmPassword" required)
+      div.form-group
+        label(for="birth") 생년월일
+        input(type="date" id="birth" name="birth" required)
+      div.button-group
+        button(type="submit") 가입하기
