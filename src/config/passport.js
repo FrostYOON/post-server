@@ -28,7 +28,7 @@ passport.use(
 
 // response에 Cookie를 실어줄 때 동작
 passport.serializeUser((user, done) => {
-  done(null, user._id);
+  done(null, user.id);
 });
 
 // request에서 Cookie를 읽어올 때 동작
