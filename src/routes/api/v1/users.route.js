@@ -1,6 +1,7 @@
 import express from "express";
 import User from "../../../models/users.js";
 import passport from "../../../config/passport.js";
+import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
@@ -56,10 +57,45 @@ router.get("/", async (req, res) => {
 router.post(
   "/login",
   passport.authenticate("local", {
-    successReturnToOrRedirect: "/posts",
+    // successReturnToOrRedirect: "/posts",
     failureMessage: true,
-    failureRedirect: "/users/login",
+    session: false,
+  }),
+  (req, res) => {
+    let token = null;
+    if (req.user) {
+      const { _id } = req.user;
+      const payload = { _id };
+      token = jwt.sign(payload, process.env.JWT_SECRET_KEY);
+    }
+    res.cookie("token", token);
+    res.redirect("/posts");
+  }
+);
+
+router.get(
+  "/login/google",
+  passport.authenticate("google", {
+    scope: ["profile", "email"]
   })
+);
+
+router.get(
+  "/login/google/callback",
+  passport.authenticate("google", {
+    failureRedirect: "/posts",
+    session: false,
+  }),
+  (req, res) => {
+    let token = null;
+    if (req.user) {
+      const { _id } = req.user;
+      const payload = { _id };
+      token = jwt.sign(payload, process.env.JWT_SECRET_KEY);
+    }
+    res.cookie("token", token);
+    res.redirect("/posts");
+  }
 );
 
 router.delete("/", async (req, res) => {

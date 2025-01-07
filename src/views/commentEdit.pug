@@ -1,0 +1,13 @@
+extends layout
+
+block content
+  .container
+    h1 댓글 수정
+    form(action=`/api/v1/posts/${comment.post._id}/comments/${comment._id}/edit` method="post")
+      div.form-group
+        label(for="content") 내용
+        textarea(id="content" name="content" rows="5" required)= comment.content
+      div.button-group
+        button(type="submit") 수정
+        a(href=`/posts/${comment.post._id}`)
+          button(type="button") 취소

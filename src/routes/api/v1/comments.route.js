@@ -1,17 +1,14 @@
 import express from "express";
 import Comment from "../../../models/comments.js";
 import Post from "../../../models/posts.js";
+import { isCommentValidator, isSameUserValidator } from "../../../validators/comment.validator.js";
 
 const router = express.Router({ mergeParams: true });
 
 // comment 생성
-router.post("/", async (req, res) => {
+router.post("/", isCommentValidator, async (req, res) => {
   const { content } = req.body;
   const { postId } = req.params;
-
-  if (!content) {
-    return res.status(400).json({ message: "Invalid request" });
-  }
 
   try {
     const user = req.user;  
@@ -142,6 +139,60 @@ router.delete("/:id", async (req, res) => {
     );
 
     res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.post("/:commentId/edit", isSameUserValidator, async (req, res) => {
+  const { commentId, postId } = req.params;
+  const { content } = req.body;
+  try {
+    const updateComment = await Comment.findOneAndUpdate(
+      { 
+        _id: commentId,
+        post: postId
+      },
+      { content },
+    ).populate("author", "username")
+    .populate("post", "title");
+
+    if (!updateComment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+    // res.status(200).json(updateComment);
+    res.redirect(`/posts/${postId}`);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.get("/:commentId/delete", isSameUserValidator, async (req, res) => {
+  const { commentId, postId } = req.params;
+  
+  try {
+    const deleteComment = await Comment.findOneAndDelete({
+      _id: commentId,
+      post: postId
+    });
+
+    if (!deleteComment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    // Post에서 댓글 ID 제거
+    await Post.findByIdAndUpdate(
+      postId,
+      { $pull: { comments: commentId } }
+    );
+
+    // User에서 댓글 ID 제거
+    await User.findByIdAndUpdate(
+      deleteComment.author,
+      { $pull: { comments: commentId } }
+    );
+
+    res.redirect(`/posts/${postId}`);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

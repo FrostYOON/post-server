@@ -2,7 +2,6 @@ extends layout
 
 block content
   .container
-    link(rel="stylesheet", href="/style.css")
     h1 회원가입
     form(action="/api/v1/users/signup" method="post")
       div.form-group
@@ -22,3 +21,5 @@ block content
         input(type="date" id="birth" name="birth" required)
       div.button-group
         button(type="submit") 가입하기
+        a(href="/posts")
+          button(type="button") 메인

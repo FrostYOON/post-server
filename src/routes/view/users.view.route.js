@@ -12,14 +12,24 @@ router.get("/login", (req, res) => {
 });
 
 router.get("/logout", (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error(err);
-      res.status(500).json({ message: "session destroy error" });
-    }
-  });
-  res.clearCookie("connect.sid");
-  res.redirect("/posts");
+  // req.session.destroy((err) => {
+  //   if (err) {
+  //     console.error(err);
+  //     res.status(500).json({ message: "session destroy error" });
+  //   }
+  // });
+  res.clearCookie("token");
+  res.redirect("/users/login");
+});
+
+router.get("/posts", async (req, res) => {
+  const user = req.user;
+  if (user) {
+    const findUser = await User.findById(user._id).populate("posts");
+    res.render("myPosts", { findUser, user });
+  } else {
+    res.send("Not Authorized");
+  }
 });
 
 export default router;

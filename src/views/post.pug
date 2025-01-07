@@ -2,9 +2,14 @@ extends layout
 
 block content
   .container
-    link(rel="stylesheet", href="/style.css")
     .post-header
       h1 #{post.title}
+      if isSameUser
+        span 
+          a(href=`/posts/${post._id}/edit`)
+            button 게시글 수정
+          a(href=`/posts/${post._id}/delete`)
+            button 게시글 삭제
       .post-info
         p.author 작성자: #{post.author.username}
         p.date 작성일: #{post.createdAt}
@@ -18,8 +23,15 @@ block content
         each comment in post.comments
           li.comment-item
             p.content #{comment.content}
-            p.author 작성자: #{comment.author ? comment.author.username : ''}
-            p.date #{comment.createdAt}
+            .comment-another
+              p.author 작성자: #{comment.author ? comment.author.username : ''}
+              p.date #{comment.createdAt}
+              if comment.author._id.equals(user._id)
+                span
+                  a(href=`/comments/${comment._id}/edit`)
+                    button 댓글 수정
+                  a(href=`/comments/${comment._id}/delete`)
+                    button 댓글 삭제
 
       .comment-form
         h3 댓글 쓰기
@@ -32,4 +44,6 @@ block content
             textarea(id="content" name="content" placeholder="내용을 입력하세요" required)
           div.button-group
             button(type="submit") 등록
+            a(href="/posts")
+              button(type="button") 목록
 

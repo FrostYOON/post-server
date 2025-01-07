@@ -1,0 +1,27 @@
+extends layout
+
+block content
+  .container
+    h1 내 게시글
+    .button-group
+      if user
+        a(href="/posts/create")
+          button 글쓰기
+        a(href="/posts")
+          button 목록
+    ul.post-list
+      each post in findUser.posts
+        li.post-item
+          a(href=`/posts/${post._id}`) #{post.title}
+          .post-another
+            .post-author 작성자: #{post.author.username}
+            .post-date 작성일: #{post.createdAt}
+            .post-date 수정일: #{post.updatedAt}
+    div#pagination
+      if page > 1
+        a(href=`/posts?page=${page - 1}&size=${size}`)
+          button 이전
+      if page < totalPages
+        a(href=`/posts?page=${page + 1}&size=${size}`)
+          button 다음
+    

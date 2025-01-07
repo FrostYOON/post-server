@@ -3,9 +3,9 @@ html(lang="en")
   head
     meta(charset="UTF-8")
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    link(rel="stylesheet", href="/css/style.css")
     title Document
   body 
-    link(rel="stylesheet", href="/style.css")
     .container
       h1 로그인
       form(action="/api/v1/users/login", method="post")
@@ -17,5 +17,10 @@ html(lang="en")
           input(type="password", id="password", name="password", placeholder="비밀번호를 입력해주세요")
         div.button-group
           button(type="submit") 로그인
+          a(href="/posts")
+            button(type="button") 메인
         a(href="/users/signup")
           button(type="button") 회원가입
+        
+      a(href="/api/v1/users/login/google")
+        button(type="button") 구글 로그인
