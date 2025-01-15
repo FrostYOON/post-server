@@ -1,4 +1,15 @@
-import mongoose from "mongoose";
+import mongoose, { Document } from "mongoose";
+import { IUser } from "./users";
+import { IComment } from "./comments";
+
+export interface IPost extends Document<mongoose.Types.ObjectId> {
+  title: string;
+  content: string;
+  author: IUser;
+  comments: IComment[];
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 const PostSchema = new mongoose.Schema(
   {
@@ -25,4 +36,4 @@ const PostSchema = new mongoose.Schema(
   }
 );
 PostSchema.index({ index: -1 });
-export default mongoose.model("Post", PostSchema);
+export default mongoose.model<IPost>("Post", PostSchema);

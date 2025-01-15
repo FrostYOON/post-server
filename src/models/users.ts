@@ -1,7 +1,22 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
+import { IPost } from "./posts";
+import { IComment } from "./comments";
 import bcrypt from "bcrypt";
 
-const UserSchema = new Schema(
+export interface IUser extends Document<mongoose.Types.ObjectId> {
+  username: string;
+  email: string;
+  password: string;
+  registerType: "normal" | "google";
+  socialId: string;
+  birth: Date;
+  posts: IPost[];
+  comments: IComment[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const UserSchema = new Schema<IUser>(
   {
     username: { type: String, required: true },
     email: {
@@ -24,14 +39,14 @@ const UserSchema = new Schema(
   { timestamps: true }
 );
 
-UserSchema.pre("save", function (next) {
+UserSchema.pre("save", async function (next) {
   if (this.password && this.isNew || this.isModified("password")) {
-    this.password = bcrypt.hash(this.password, 10);
+    this.password = await bcrypt.hash(this.password, 10);
   }
   next();
 });
 
-const User = mongoose.model("User", UserSchema);
+const User = mongoose.model<IUser>("User", UserSchema);
 
 export default User;
 

@@ -1,5 +1,5 @@
 import express from "express";
-import User from "../../models/users.js";
+import User from "../../models/users";
 
 const router = express.Router();
 
@@ -26,9 +26,14 @@ router.get("/posts", async (req, res) => {
   const user = req.user;
   if (user) {
     const findUser = await User.findById(user._id).populate("posts");
+    if (!findUser) {
+      res.send("Not Authorized");
+      return;
+    }
     res.render("myPosts", { findUser, user });
   } else {
     res.send("Not Authorized");
+    return;
   }
 });
 

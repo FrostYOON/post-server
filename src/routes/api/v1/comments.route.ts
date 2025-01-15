@@ -1,26 +1,29 @@
-import express from "express";
-import Comment from "../../../models/comments.js";
-import Post from "../../../models/posts.js";
-import { isCommentValidator, isSameUserValidator } from "../../../validators/comment.validator.js";
+import express, { Request, Response } from "express";
+import Comment from "../../../models/comments";
+import Post from "../../../models/posts";
+import User from "../../../models/users";
+import { isCommentValidator, isSameUserValidator } from "../../../validators/comment.validator";
 
 const router = express.Router({ mergeParams: true });
 
 // comment 생성
-router.post("/", isCommentValidator, async (req, res) => {
+router.post("/", isCommentValidator, async (req: Request, res: Response): Promise<void> => {
   const { content } = req.body;
   const { postId } = req.params;
 
   try {
-    const user = req.user;  
+    const user = req.user;
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      res.status(404).json({ message: "User not found" });
+      return;
     }
 
     const post = await Post.findById(postId);
 
     if (!post) {
-      return res.status(404).json({ message: "Post not found" });
+      res.status(404).json({ message: "Post not found" });
+      return;
     }
 
     const commentCreated = await Comment.create({
@@ -28,22 +31,28 @@ router.post("/", isCommentValidator, async (req, res) => {
       author: user._id,
       post: post._id,
     });
-
-    post.comments.push(commentCreated._id);
+    if (!commentCreated) {
+      res.status(404).json({ message: "Comment not found" });
+      return;
+    }
+    
+    post.comments.push(commentCreated.id);
     await post.save();
 
-    user.comments.push(commentCreated._id);
+    user.comments.push(commentCreated.id);
     await user.save();
 
     // res.status(201).json(commentCreated);
     res.redirect(`/posts/${postId}`);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (error: unknown) {
+    const err = error as Error;
+    res.status(500).json({ message: err.message });
+    return;
   }
 });
 
 // comment 조회
-router.get("/", async (req, res) => {
+router.get("/", async (req: Request, res: Response): Promise<void> => {
   const { postId } = req.params;
   try {
     const comments = await Comment.find({
@@ -53,13 +62,15 @@ router.get("/", async (req, res) => {
       .populate("post", "title");
     
     res.status(200).json(comments);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (error: unknown) {
+    const err = error as Error;
+    res.status(500).json({ message: err.message });
+    return;
   }
 });
 
 // comment 상세조회
-router.get("/:id", async (req, res) => {
+router.get("/:id", async (req: Request, res: Response): Promise<void> => {
   const { id, postId } = req.params;
   try {
     const comment = await Comment.findOne({ 
@@ -69,22 +80,26 @@ router.get("/:id", async (req, res) => {
       .populate("post", "title");
 
     if (!comment) {
-      return res.status(404).json({ message: "Comment not found" });
+      res.status(404).json({ message: "Comment not found" });
+      return;
     }
 
     res.status(200).json(comment);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (error: unknown) {
+    const err = error as Error;
+    res.status(500).json({ message: err.message });
+    return;
   }
 });
 
 // comment 수정
-router.put("/:id", async (req, res) => {
+router.put("/:id", async (req: Request, res: Response): Promise<void> => {
   const { id, postId } = req.params;
   const { content } = req.body;
 
   if (!content) {
-    return res.status(400).json({ message: "Invalid request" });
+    res.status(400).json({ message: "Invalid request" });
+    return;
   }
 
   try {
@@ -99,17 +114,20 @@ router.put("/:id", async (req, res) => {
     .populate("post", "title");
 
     if (!updateComment) {
-      return res.status(404).json({ message: "Comment not found" });
+      res.status(404).json({ message: "Comment not found" });
+      return;
     }
 
     res.status(200).json(updateComment);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (error: unknown) {
+    const err = error as Error;
+    res.status(500).json({ message: err.message });
+    return;
   }
 });
 
 // comment 삭제
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", async (req: Request, res: Response): Promise<void> => {
   const { id, postId } = req.params;
   
   try {
@@ -123,7 +141,8 @@ router.delete("/:id", async (req, res) => {
     console.log('Found comment:', deleteComment); // 디버깅용 로그
 
     if (!deleteComment) {
-      return res.status(404).json({ message: "Comment not found" });
+      res.status(404).json({ message: "Comment not found" });
+      return;
     }
 
     // Post에서 댓글 ID 제거
@@ -139,12 +158,14 @@ router.delete("/:id", async (req, res) => {
     );
 
     res.status(204).send();
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (error: unknown) {
+    const err = error as Error;
+    res.status(500).json({ message: err.message });
+    return;
   }
 });
 
-router.post("/:commentId/edit", isSameUserValidator, async (req, res) => {
+router.post("/:commentId/edit", isSameUserValidator, async (req: Request, res: Response): Promise<void> => {
   const { commentId, postId } = req.params;
   const { content } = req.body;
   try {
@@ -158,16 +179,19 @@ router.post("/:commentId/edit", isSameUserValidator, async (req, res) => {
     .populate("post", "title");
 
     if (!updateComment) {
-      return res.status(404).json({ message: "Comment not found" });
+      res.status(404).json({ message: "Comment not found" });
+      return;
     }
     // res.status(200).json(updateComment);
     res.redirect(`/posts/${postId}`);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (error: unknown) {
+    const err = error as Error;
+    res.status(500).json({ message: err.message });
+    return;
   }
 });
 
-router.get("/:commentId/delete", isSameUserValidator, async (req, res) => {
+router.get("/:commentId/delete", isSameUserValidator, async (req: Request, res: Response): Promise<void> => {
   const { commentId, postId } = req.params;
   
   try {
@@ -177,7 +201,8 @@ router.get("/:commentId/delete", isSameUserValidator, async (req, res) => {
     });
 
     if (!deleteComment) {
-      return res.status(404).json({ message: "Comment not found" });
+      res.status(404).json({ message: "Comment not found" });
+      return;
     }
 
     // Post에서 댓글 ID 제거
@@ -193,8 +218,10 @@ router.get("/:commentId/delete", isSameUserValidator, async (req, res) => {
     );
 
     res.redirect(`/posts/${postId}`);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (error: unknown) {
+    const err = error as Error;
+    res.status(500).json({ message: err.message });
+    return;
   }
 });
 

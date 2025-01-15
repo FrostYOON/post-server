@@ -1,6 +1,6 @@
 import express from "express";
-import Post from "../../models/posts.js";
-import { isUserValidator, isSameUserValidator } from "../../validators/post.validator.js";
+import Post from "../../models/posts";
+import { isUserValidator, isSameUserValidator } from "../../validators/post.validator";
 
 const router = express.Router();
 
@@ -11,9 +11,9 @@ router.get("/create", isUserValidator, async (req, res) => {
 
 router.get("/", async (req, res) => {
   const user = req.user;
-  const page = req.query.page || 1;
-  const size = req.query.size || 5;
-  const skip = (page - 1) * size;
+  const page: number = Number(req.query.page) || 1;
+  const size: number = Number(req.query.size) || 5;
+  const skip: number = (page - 1) * size;
   try {
     const posts = await Post.find({})
       .populate("author", "username")
@@ -40,7 +40,7 @@ router.get("/:postId", isUserValidator, async (req, res) => {
         },
       });
     let isSameUser = false;
-    if (post.author._id.equals(user._id)) {
+    if (post?.author?._id.equals(user?._id)) {
       isSameUser = true;
     }
     res.render("post", { post, isSameUser });

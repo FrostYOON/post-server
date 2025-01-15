@@ -1,8 +1,8 @@
 import express from "express";
-import routes from "./routes/api/v1/index.js";
-import viewRouter from "./routes/view/index.js";
+import routes from "./routes/api/v1/index";
+import viewRouter from "./routes/view/index";
 import cookieParser from "cookie-parser";
-import session from "express-session";
+// import session from "express-session";
 import MongoStore from "connect-mongo";
 import passport from "passport";
 import dotenv from "dotenv";

@@ -26,7 +26,7 @@ block content
             .comment-another
               p.author 작성자: #{comment.author ? comment.author.username : ''}
               p.date #{comment.createdAt}
-              if comment.author._id.equals(user._id)
+              if comment.author && user && comment.author._id.equals(user._id)
                 span
                   a(href=`/comments/${comment._id}/edit`)
                     button 댓글 수정

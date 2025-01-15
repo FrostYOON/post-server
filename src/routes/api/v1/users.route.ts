@@ -1,35 +1,37 @@
-import express from "express";
-import User from "../../../models/users.js";
-import passport from "../../../config/passport.js";
+import express, { Request, Response, NextFunction } from "express";
+import User from "../../../models/users";
+import passport from "../../../config/passport";
 import jwt from "jsonwebtoken";
 
 const router = express.Router();
 
-const signupValidator = async (req, res, next) => {
+const signupValidator = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   const { username, password, email, confirmPassword, birth } = req.body;
   if (!username || !password || !email || !confirmPassword || !birth) {
-    return res.status(400).json({ message: "Invalid request" });
+    res.status(400).json({ message: "Invalid request" });
+    return;
   }
   if (password !== confirmPassword) {
-    return res
-      .status(400)
-      .json({ message: "Password and confirm password do not match" });
+    res.status(400).json({ message: "Password and confirm password do not match" });
+    return;
   }
 
   const emailRegex = new RegExp(/.*\@.*\..*/);
   if (!emailRegex.test(email)) {
-    return res.status(400).json({ message: "Invalid email" });
+    res.status(400).json({ message: "Invalid email" });
+    return;
   }
 
   const user = await User.findOne({ email });
   if (user) {
-    return res.status(400).json({ message: "Email already exists" });
+    res.status(400).json({ message: "Email already exists" });
+    return;
   }
 
   next();
 };
 
-router.post("/signup", signupValidator, async (req, res) => {
+router.post("/signup", signupValidator, async (req: Request, res: Response): Promise<void> => {
   const { username, password, email, birth } = req.body;
   try {
     const user = await User.create({
@@ -38,19 +40,32 @@ router.post("/signup", signupValidator, async (req, res) => {
       email,
       birth,
     });
+
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
     // res.status(201).json(user);
     res.redirect("/posts");
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (error: unknown) {
+    const err = error as Error;
+    res.status(500).json({ message: err.message });
+    return;
   }
 });
 
-router.get("/", async (req, res) => {
+router.get("/", async (req: Request, res: Response): Promise<void> => {
   try {
     const users = await User.find();
+    if (!users) {
+      res.status(404).json({ message: "Users not found" });
+      return;
+    }
     res.status(200).json(users);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (error: unknown) {
+    const err = error as Error;
+    res.status(500).json({ message: err.message });
+    return;
   }
 });
 
@@ -61,12 +76,12 @@ router.post(
     failureMessage: true,
     session: false,
   }),
-  (req, res) => {
+  (req: Request, res: Response): void=> {
     let token = null;
     if (req.user) {
       const { _id } = req.user;
       const payload = { _id };
-      token = jwt.sign(payload, process.env.JWT_SECRET_KEY);
+      token = jwt.sign(payload, process.env.JWT_SECRET_KEY || "");
     }
     res.cookie("token", token);
     res.redirect("/posts");
@@ -91,19 +106,21 @@ router.get(
     if (req.user) {
       const { _id } = req.user;
       const payload = { _id };
-      token = jwt.sign(payload, process.env.JWT_SECRET_KEY);
+      token = jwt.sign(payload, process.env.JWT_SECRET_KEY || "");
     }
     res.cookie("token", token);
     res.redirect("/posts");
   }
 );
 
-router.delete("/", async (req, res) => {
+router.delete("/", async (req: Request, res: Response): Promise<void> => {
   try {
     await User.findByIdAndDelete(req.query.id);
     res.status(204).send();
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (error: unknown) {
+    const err = error as Error;
+    res.status(500).json({ message: err.message });
+    return;
   }
 });
 

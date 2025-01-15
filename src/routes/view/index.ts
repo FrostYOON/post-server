@@ -1,7 +1,7 @@
 import express from "express";
-import postRouter from "./posts.view.route.js";
-import userRouter from "./users.view.route.js";
-import commentRouter from "./comments.view.route.js";
+import postRouter from "./posts.view.route";
+import userRouter from "./users.view.route";
+import commentRouter from "./comments.view.route";
 
 const router = express.Router();
 
